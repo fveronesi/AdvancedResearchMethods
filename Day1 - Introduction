@@ -258,7 +258,7 @@ str(Crimes)
 ```
 
 
-Please notice the name of the first variable `ï..CrimeRate`. This sometimes happens with R, which probably has some issues with this particular file.
+Please notice the name of the first variable `Ã¯..CrimeRate`. This sometimes happens with R, which probably has some issues with this particular file.
 It is important to notice this, because we always need to use accurate variable names in R, otherwise the script will not work.
 
 We can find the description of the dataset at this link:
@@ -290,7 +290,7 @@ where $\bar{y}$ is the mean of a variable $y$, $n$ is the number of elements in 
 
 We can compute the mean for example of the variable CrimeRate
 ```{r}
-mean(Crimes$ï..CrimeRate)
+mean(Crimes$Ã¯..CrimeRate)
 ```
 
 
@@ -298,7 +298,7 @@ Another useful measure of centrality is the median, which is defined as the midd
 We can simply compute it using the function `median` in R:
 
 ```{r}
-median(Crimes$ï..CrimeRate)
+median(Crimes$Ã¯..CrimeRate)
 ```
 
 
@@ -319,13 +319,13 @@ More info here: [Latex Equation Reference](https://en.wikibooks.org/wiki/LaTeX/M
 
 In R, the variance can be simply computed as follows:
 ```{r}
-var(Crimes$ï..CrimeRate)
+var(Crimes$Ã¯..CrimeRate)
 ```
 
 
 The Standard Deviation ($s$) is the square root of the variance:
 ```{r}
-sd(Crimes$ï..CrimeRate)
+sd(Crimes$Ã¯..CrimeRate)
 ```
 
 
@@ -355,7 +355,7 @@ Quartiles are important because they allow to measure spread in case when our di
 The interquartile range can be easily computed in R with the function `IQR`:
 
 ```{r}
-IQR(Crimes$ï..CrimeRate)
+IQR(Crimes$Ã¯..CrimeRate)
 ```
 
 
@@ -371,9 +371,9 @@ There are many useful plots that we will use throughout the course. In particula
 ###**Histograms**
 Histograms are plots designed to represent distributions. To create a histogram we simply need to divide our data into non-overlapping "bins", meaning small intervals, which will be plotted on the X axis. Then we count the number of values that fall into each bin, and this number is plotted on the Y axis.
 
-Let's look at an example, again using the `ï..CrimeRate` variable:
+Let's look at an example, again using the `Ã¯..CrimeRate` variable:
 ```{r}
-hist(Crimes$ï..CrimeRate)
+hist(Crimes$Ã¯..CrimeRate)
 ```
 
 
@@ -381,7 +381,7 @@ As you can see the histogram has split the data into 7 bins, and plot the freque
 
 We can embellish this plots a bit by changing title and the label on the X axis, with the options `main` and `xlab`:
 ```{r}
-hist(Crimes$ï..CrimeRate, main="Histogram Crime Rates", xlab="Crime rate (number of offences per million population)")
+hist(Crimes$Ã¯..CrimeRate, main="Histogram Crime Rates", xlab="Crime rate (number of offences per million population)")
 ```
 
 
@@ -393,7 +393,7 @@ Bar charts are very useful when we need to compare groups. In the dataset Crimes
 Before we can plot the data we need to compute averages for both categories in the variable Southern. We can do it with the function `tapply`: 
 
 ```{r}
-Mean = tapply(X=Crimes$ï..CrimeRate, INDEX=Crimes$Southern, FUN=mean)
+Mean = tapply(X=Crimes$Ã¯..CrimeRate, INDEX=Crimes$Southern, FUN=mean)
 Mean
 ```
 
@@ -426,7 +426,7 @@ SEM = function(x){sd(x) / sqrt(length(x))}
 This simple function will accept a vector, `x`, as only input. Then it will compute the standard error as a ratio between the standard deviation, `sd`, and the square root, `sqrt`, of the number of elements, `length`, of the vector `x`.
 Now that we have a function we can again use `tapply`, to compute standard errors for each category:
 ```{r}
-SEM.STATES = tapply(X=Crimes$ï..CrimeRate, INDEX=Crimes$Southern, FUN=SEM)
+SEM.STATES = tapply(X=Crimes$Ã¯..CrimeRate, INDEX=Crimes$Southern, FUN=SEM)
 SEM.STATES
 ```
 
@@ -465,7 +465,7 @@ The last type of graph allows us to visualise the relation between two continuou
 
 
 ```{r}
-plot(ï..CrimeRate ~ Wage10, data=Crimes, pch=20, xlab="Median Weekly Wage", ylab="Crime rate")
+plot(Ã¯..CrimeRate ~ Wage10, data=Crimes, pch=20, xlab="Median Weekly Wage", ylab="Crime rate")
 ```
 
 
@@ -479,7 +479,7 @@ Box-Plots are another way to represent distributions, this time using quartiles.
 
 First of all, let's look at the R code to generate box-plots:
 ```{r}
-boxplot(Crimes$ï..CrimeRate, main="Histogram Crime Rates", xlab="Crime rate (number of offences per million population)")
+boxplot(Crimes$Ã¯..CrimeRate, main="Histogram Crime Rates", xlab="Crime rate (number of offences per million population)")
 ```
 
 
@@ -491,8 +491,8 @@ The image below illustrates how to interpret box-plots:
 
 We can increase the amount of information displayed by adding a red dot on the mean value. This can be done with the function `points`:
 ```{r}
-boxplot(Crimes$ï..CrimeRate, main="Histogram Crime Rates", xlab="Crime rate (number of offences per million population)")
-points(mean(Crimes$ï..CrimeRate), pch=16, col="red")
+boxplot(Crimes$Ã¯..CrimeRate, main="Histogram Crime Rates", xlab="Crime rate (number of offences per million population)")
+points(mean(Crimes$Ã¯..CrimeRate), pch=16, col="red")
 ```
 
 
@@ -513,7 +513,7 @@ Alternatively, we can select more advanced colours from the range below:
 Box plots are a very good way of comparing distributions of different groups. We can do that including a formula, for example specifying that we want to plot distributions of Crime Rate as a function of Youth unemployment:
 
 ```{r}
-boxplot(Crimes$ï..CrimeRate  ~ Crimes$HighYouthUnemploy, main="Histogram Crime Rates", xlab="Crime rate (number of offences per million population)")
+boxplot(Crimes$Ã¯..CrimeRate  ~ Crimes$HighYouthUnemploy, main="Histogram Crime Rates", xlab="Crime rate (number of offences per million population)")
 ```
 
 Box plots can be used with any distribution. However, their role become very important when we are dealing with non-normal data. In fact, with normal distribution we can simply use a bar-chart to plot the mean values of each group, and an error bar with the confidence interval (computed as twice the standard error of the mean). However, for data that do not fit a normal distribution this is not possible and this is where box plot become very useful. In fact, using the interquartile range (IQR) we can compute confidence intervals around the median, with the following equation:
@@ -523,7 +523,7 @@ Box plots can be used with any distribution. However, their role become very imp
 Confidence intervals around the median can be plotted in R as notches, with the option `notch`:
 
 ```{r}
-boxplot(Crimes$ï..CrimeRate  ~ Crimes$HighYouthUnemploy, notch=T, main="Histogram Crime Rates", xlab="Crime rate (number of offences per million population)")
+boxplot(Crimes$Ã¯..CrimeRate  ~ Crimes$HighYouthUnemploy, notch=T, main="Histogram Crime Rates", xlab="Crime rate (number of offences per million population)")
 ```
 
 The interpretation is very similar to the confidence intervals around the mean. Therefore if the two notches are overlapping there are good chances that with a formal test the two groups will not result statistically different.
