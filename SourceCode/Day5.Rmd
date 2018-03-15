@@ -1,0 +1,293 @@
+---
+title: "Advanced Research Methods - E7004"
+subtitle: "Day 5 - Machine Learning"
+author: "Dr. Fabio Veronesi"
+date: "23 March 2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=F)
+```
+
+##**Summary**
+*	Introduction
+    + Bias-Variance Trade-Off
+    + Cross-Validation
+*	Regression trees
+*	Random forest 
+*	Boosted regression trees
+
+
+
+***
+##**Packages**
+For this exercise we will need the following packages:
+
+```{r,eval=F}
+install.packages("mvtnorm")
+install.packages("caret")
+install.packages("mlbench")
+install.packages("MLmetrics")
+install.packages("rpart")
+install.packages("randomForest")
+install.packages("dismo")
+install.packages("gbm")
+```
+```{r}
+library(mvtnorm)
+library(caret)
+library(mlbench)
+library(MLmetrics)
+library(rpart)
+library(randomForest)
+library(dismo)
+library(gbm)
+```
+
+
+***
+##**Introduction**
+So far we looked at descriptive statistics, which aims at describing a dataset or a series of datasets: centrality, spread, plotting. We also looked at inferential statistics, which aims at using data from relatively small samples to draw conclusions that can be extrapolate to a wider population: ANOVA, linear regression, GLM. In this lecture we will look at predictive modelling, meaning techniques to build statistical models that can help explain the variance in our dependent variable using a set of predictors. Moreover, as the word suggests predictive modelling is also very useful to predict (or estimate) the dependent variable for new values of the predictors. This type of statistical tools are very powerful and can be used for any type of problem, being spatial modelling, temporal forecasting or any other type of modelling. For example, predictive modelling is used by banks to predict the probability of a mortgage default for new clients. It is also used by Netflix to suggest you potential movies you might like, and Microsoft to recognize your body movements on the kinetic device for the XBox. 
+
+Predictive modelling can take many forms, but the most popular is supervised machine learning. This is a class of algorithms, which require a training dataset of observations and a set of predictors. The aim of machine learning is finding a function that can model the variance of the dependent variable based on the predictors:
+
+####$Y = f(X) + \epsilon$
+
+where $Y$ is the dependent (or target) variable we aimed at modelling and predicting, and $f(X)$ is a function of the set of predictors ($X$). Finally, $\epsilon$ is the random error component and depends on several factors (e.g. measurement error) and it is the irreducible part of the variance (i.e. the variance in the data that the model cannot explain).
+
+The term machine learning is generally used to define complex algorithms, like the convolutional neural network employed by driverless cars to recognise their surroundings. This is however very misleading because supervised learning can take many forms. For example, linear regression can be used to model and predict the relation between target variable and predictors. Logistic regression, which we used to model presence/absence data, can also be employed as a predictive model to classify binary outcomes. In fact, machine learning is generally divided into two classes: regression and classification:
+
+![Regression and Classification](https://github.com/fveronesi/AdvancedResearchMethods/raw/Images/regression_classification.png)
+
+The difference between the two is that regression aims at predicting continuous variables (e.g. soil moisture, house prices ect.), while classification aims at predicting categorical variables (e.g. good/bad, soil classes).
+
+In this lecture we will focus on regression, and explore some popular machine learning algorithms and we will see how to select the best among the ones we will test.
+
+###**Bias-Variance Trade-Off**
+As mentioned, machine learning tries to model the target variable as a function of the predictors. The error of the function that models the variable is the sum of two quantities: bias and variance. Bias refers to the approximation error created by using strict functions. A linear model serves as an example: no matter how many observations are in the dataset and their general pattern, linear regression will always model them using a line. This creates an error that is intrinsic to the fact that the general shape of the function does not change. Thus linear regression is a biased method. 
+
+On the contrary, variance measures the amount of change that the function experiences with changes in the training set. An example of a method with high variance can be a cubic spline. If applied to a dataset, since it fits a local polynomial of third order, it will probably fit most of the observations very closely. However, substantially changing the training data will also drastically modify the shape of the curve, since it will again try to fit all observations. Thus, this method has high variance and low bias. 
+
+For a more comprehensive explanation please refer to free Springer book by [James et al. (2013)](http://www-bcf.usc.edu/~gareth/ISL/).
+
+The bias-variance trade-off is extremely important in machine learning and has very real implications for the model selection. You may think that selecting a complex model will always produce better predictive results. This is however not true, everything depends on the dataset we are dealing with and the new data we wish to predict. We can look at the following example to better understand this point.
+
+
+###**Example - Wind Speed Mapping**
+Let's assume you want to use machine learning to develop a wind speed atlas to use for identifying sites where to build new wind farms. Your research framework involves collecting wind speed data, for example from sensors mounted at airports and airfields. Wind speed is your target variable, so now you need to consider predictors. In general, for spatial mapping predictors are environmental variables: such as terrain elevation, slope, air temperature, humidity, solar irradiation, land cover. These values are available for all the locations in our training set, i.e. airports and airfields, but also for all the locations we may be interested in predicting, i.e. test set. If the predictors do not cover the test area there is no point of applying machine learning.
+
+Generally, airports and airfields are built in low-lying areas, therefore the predictors will all be an expression of environmental variables in these areas. However, it is important to get wind speed estimates maybe along ridges or high elevation areas, where wind speed should be high and building wind turbine would make more sense. So in this case the range of predictors in the training set is different compared to the range of predictors in the test set. This could be an issue, particularly for complex models. 
+
+To better understand this point we can run a simple simulation:
+
+```{r}
+sigma <- matrix(c(1, 0.8,   
+                  0.8, 1 ), ncol=2, byrow=T)  
+
+Data = rmvnorm(n=50, mean=c(50, 5), sigma=sigma) 
+
+str(Data)
+```
+
+The function `rmvnorm` is included in the package `mvtnorm` and allows the simulation of normally distributed data with particular correlations. In this example we want to simulate two vectors with a 0.8 correlation coefficient (i.e. very linearly correlated). The function requires us to specify `n`, sample size for each vector; `mean`, mean values; and `sigma`, which is the covariance matrix. In this case we are specifying a 0.8 correlation coefficient. The function `rmvnorm` returns a `data.frame` with two columns, one of each of the two vectors. To visually check their correlation we can create a scatterplot (please be aware that because these are simulated data your results may be different):
+
+```{r}
+X = Data[,1]
+Y = Data[,2]
+
+plot(Y ~ X, xlab="X", ylab="Y", pch=20)
+```
+
+Since we simulated these data we know that they are very linearly correlated and therefore the best model is a linear regression. However, let's assume we do not know that and we want to find the best model between linear model, quadratic and fourth order polynomials. We first fit the three models:
+
+```{r}
+Linear = lm(Y ~ X)
+Quadratic = lm(Y ~ poly(X, 2))
+Fourth = lm(Y ~ poly(X, 4))
+```
+
+Please notice the function `poly` to easily fit polynomials in R. At this point we could check their goodness of fit by comparing their estimates with our observations of Y. In other words checking the residuals of each model. Residuals are both positive and negative:
+
+![Residuals](https://github.com/fveronesi/AdvancedResearchMethods/raw/Images/10_Reg5.gif)
+
+For this reason, simply computing their mean value is pointless, since it will be very close to zero. A popular index to evaluate accuracy of machine learning models is the mean absolute error (MAE), which is simply the average of the absolute residuals:
+
+###$MAE = \frac{\sum_{i=1}^{n}|y_i - \hat{y}|}{n}$
+
+The code to compute MAE using the entire training set, known as training error, is simply:
+
+```{r}
+mean(abs(residuals(Linear)))
+mean(abs(residuals(Quadratic)))
+mean(abs(residuals(Fourth)))
+```
+
+The best model is the one that minimises MAE, so it seems the best model is the fourth order polynomial (please be aware that because it is a simulation your results may be different). However, let's look at how each model performs outside the range of predictors, for example with values of X between 45 and 60. We first use the function `predict` to obtain estimates for the whole range, then create a plot:
+
+```{r}
+P.LIN = predict(Linear, newdata=data.frame(X=45:60))
+P.QUA = predict(Quadratic, newdata=data.frame(X=45:60))
+P.FOU = predict(Fourth, newdata=data.frame(X=45:60))
+
+plot(Y ~ X, xlab="X", ylab="Y", pch=20, xlim=c(45, 60), ylim=c(3, 8))
+lines(x = 45:60, y = P.LIN, type = "l", col="red") 
+lines(x = 45:60, y = P.QUA, type = "l", col="green")
+lines(x = 45:60, y = P.FOU, type = "l", col="blue")
+```
+
+It seems clearer now that the fourth order polynomial is not the right model for this dataset. This is an issue known as overfitting: simply put, complex algorithms tend to fit the training set too well, and thus they tend to fit the random noise (which may be caused by factors that predictors cannot control). This decreases their predictive power, i.e. accuracy when predicting new data.
+
+
+###**Cross-Validation**
+The problem is that minimizing the training error is not sufficient for finding the best model. We need to determine the accuracy of the model when predicting new data, i.e. the test error. However, we want to use machine learning to estimate data which are not part of our training set, so by definition we do not have a test set to use for assessing the accuracy of our models.
+
+The solution is to use the training set to estimate the test error, by using a procedure called cross-validation. This technique splits the training set into several (usually 5) random subsets, or folds. The algorithm is then trained using only four folds, and tested on the one that was excluded. This procedure is then repeated until all folds are used once for testing. A graphical representation of cross-validation is below:
+
+![5-Folds Cross-Validation](https://github.com/fveronesi/AdvancedResearchMethods/raw/Images/07_cross_validation_diagram.png)
+
+We will look at the code to perform cross-validation below.
+
+
+***
+##**Regression trees**
+Regression trees partition the predictor space creating a set of "if-then" rules that are used to estimate classes of probabilities. To better understand this let's load a sample dataset:
+
+```{r}
+data(BostonHousing)
+head(BostonHousing)
+```
+
+This dataset contains housing data for 506 census tracts of Boston from the 1970 census. The target variable is `medv`, which stands for median value of owner-occupied homes in USD 1000's. Let's say we want to fit a model that predicts `medv` using `indus`, proportion of non-retail business acres per town, and `dis`, weighted distances to five Boston employment centres. Let's plot these variables:
+
+```{r}
+library(ggplot2)
+
+ggplot(data=BostonHousing, aes(x=indus, y=dis, color=medv)) +
+  geom_point() +
+  scale_color_gradientn(colours=c("blue","light blue","green","orange","red"))
+```
+This code creates a plot where `indus` is on the X axis and `dis` is on the Y axis. Dots are coloured by `medv`. Unfortunately the course is not focused on data visualization, so we cannot describe in details the code I used to create this plot. However, if you are interestied in knowing more about this topic please complete my course on Data Visualization, available on [OneDrive](https://goo.gl/Yfr1Y3).
+
+From this image it seems clear that on the left side there is a higher concentration of relatively high values of `medv`. In other words, for values of `indus` below 6 or 7 we have a higher probability of having high value properties. This could be our first split, since values seems to be more similar within these two subgroups. This guarantees that if we need to estimate new data we can use this information to predict a possible property value, which would be the average of observations on the two sides of the division line. Let's see how `CART`, which is the most popular algorithm for regression trees, partitions this dataset:
+
+```{r}
+rpart(medv~indus+dis, data=BostonHousing)
+```
+
+Clearly, the algorithm creates a lot more partitions, and they are here numbered according to their importance. If we look at number 2 (number 1 is the full dataset), we would see that the first probability creates a split at `indus` above or below 6.66. This is exactly what we noticed visually. The last value in each row is the prediction for that class, which is the average of all observations in the partition. So if we look at particion 2 and 3 we can see that below 6.66 the median value of a property is 28.67 (USD 1000s), while above is just 18.96 (USD 1000s).
+
+We can plot the first two splits with the code below:
+
+```{r}
+ggplot(data=BostonHousing, aes(x=indus, y=dis, color=medv)) +
+  geom_point() +
+  scale_color_gradientn(colours=c("blue","light blue","green","orange","red")) +
+  geom_vline(xintercept = 6.66, color="red") +
+  geom_segment(x=6.66, y=1.96955, xend=30, yend=1.96955, col="red")
+```
+
+A simple visual example allowed us to understand how regression tree work. This is the great advantage of regression tree. These algorithms, even though not in their simplest form (i.e. `CART`) are really powerful and accurate. However, the way they work is also relatively easy to understand and communicate for example to clients.
+
+We can now try `CART` in a cross-validation framework to compute its accuracy. To create the random folds we can use a simple function from the package `caret`:
+
+```{r}
+k_folds <- createFolds(y=1:nrow(BostonHousing),k=5)
+
+k_folds
+```
+
+This function takes a vector of row indexes (from 1 to the number of rows of `BostonHousing`) and splits into five non-overlapping random subsets. Now we need to create a `for` loop that iterate through the folds:
+
+```{r}
+ERROR <- c()
+
+for(i in 1:5){
+  training <- BostonHousing[-k_folds[[i]],]
+  test     <- BostonHousing[k_folds[[i]],]
+  
+  CART.model <- rpart(medv~.,data=training)
+  
+  CART.pred <- predict(CART.model, test)
+  
+  ERROR[i] <- MAE(CART.pred, test$medv)
+}
+
+mean(ERROR)
+```
+
+First of all, an empty vector named `ERROR` is created, here we will store the mean absolute error for each fold. Then we start the `for` loop, where we iterate from 1 to 5. Inside the loop we create a training and a test set, the first by including all folds except the one which index is equal to `i`, while the other including only the fold with index equal to `i`. This creates a test set that includes one folds, while the training set includes the other four. 
+
+At this point we fit `CART` not to the whole dataset, but only to the training set. Please notice the formula `medv~.`. The dot after the tilde means that we want to include in the formula all the other variables in the `data.frame`. 
+
+Finally, the function `predict` is used to estimate values of `medv` in the test set. The final part of the script computes the MAE, and stores it into the vector `ERROR`. This is repeated for each fold. 
+
+The numerical value that is returned is the average MAE of the cross-validation. In this case `CART` estimates with an error of around $3200 (remember that `medv` is expressed in USD 1000's).
+
+***
+##**Random forest**
+Random forest is another algorithm based on regression trees, and it is probably the most popular to date of this class. It is an ensemble method, meaning that instead of fitting a single tree, it fits multiple trees, thus creating a "forest" of regression trees. It does that by using a technique called bagging, which employs bootstrapping, i.e. resampling with repetitions, and random selection of predictors. In essence, random forest performs a simulation at each run. The simulation creates a series of boostrap replicates of the training set, each slightly different from the original but with equal number of rows (some are repeated). In each simulation random forest also includes in the training only a certain percentage of predictors (usually a third), selected randomly. This creates trees that are not correlated with each other, and this procedure can greatly increase the accuracy as compared to the classic `CART`. Below is a schematic representation of random forest:
+
+![Random Forest - Schematic Representation](https://github.com/fveronesi/AdvancedResearchMethods/raw/Images/RandomForest1.jpg)
+
+The beauty of R and its consistent syntax, is that once we know how to fit one model, fitting another is just a matter of changing a couple of functions. For example, let's look at the code to perform a five folds cross-validation on the `BostonHousing` dataset with random forest:
+
+```{r}
+ERROR <- c()
+
+for(i in 1:5){
+  training <- BostonHousing[-k_folds[[i]],]
+  test     <- BostonHousing[k_folds[[i]],]
+  
+  RF.model <- randomForest(medv~.,data=training, ntree=1000)
+  
+  RF.pred <- predict(RF.model, test)
+  
+  ERROR[i] <- MAE(RF.pred, test$medv)
+}
+
+mean(ERROR)
+```
+We only need to change a few lines to make it work. Clearly we need to include the function `randomForest`, which again works on a formula. This function also takes an option for the number of trees (or simulations) we want to fit. Other than this everything else remains the same.
+
+As you can see random forest can substantially reduce the error of the model, bringing it to around $2200
+
+
+***
+##**Boosted regression trees**
+This algorithm is another powerful example of regression trees. It is again an ensemble method, but it works in a fundamentally different way compared to random forest. Boosting is initialized by fitting a single regression tree to a subset of the entire training dataset and testing its performance on the remaining data. The next iteration fits another tree, but this time focusing on trying to decrease the error from the previous step. This process continues until adding more trees does not provide any improvement in accuracy. Below is a schematic representation of boosted regression trees:
+
+![Boosted Regression Trees - Schematic Representation](https://github.com/fveronesi/AdvancedResearchMethods/raw/Images/BoostedRegression.jpg)
+
+Let's see the code to do a cross-validation for boosted regression trees:
+
+```{r}
+ERROR <- c()
+
+for(i in 1:5){
+  training <- BostonHousing[-k_folds[[i]],]
+  test     <- BostonHousing[k_folds[[i]],]
+  
+  GBM.mod = gbm.step(data=training, gbm.x=1:13, gbm.y=14, tree.complexity = 5, family="gaussian", silent = TRUE, plot.main = FALSE)
+  
+  PRED_GBM = predict.gbm(GBM.mod, newdata=test, n.trees=GBM.mod$gbm.call$best.trees, type="response")
+  
+  ERROR[i] <- MAE(PRED_GBM, test$medv)
+}
+
+mean(ERROR)
+```
+Again the script is very similar to what we used in previous examples. The differences are in the functions `gbm.step`, which trains the algorithm, and `predict.gbm`, which estimates new values. As you can see the function `gbm.step` is a bit different to what we used before. In particular, it does not allow the formula syntax. So we need to specify the indexes in the `data.frame` for target variable and predictors. We can visually check the `BostonHousing` `data.frame` to obtain these values. The variable `medv` is in column number 14, so `gbm.y` takes the value 14; since we want to include all variables `gbm.x` takes values from 1 to 13. In this simple dataset this new syntax is easy to follow; however, for datasets with a lot more predictors you can imagine that knowing the indexes of all predictors could be challenging. 
+
+The more complex the algorithm, the more options we need to input. In this case we are only adding the option `tree.complexity`, which controls the maximum number of branches allowed, larger trees may overfit the training set. There are other options, also known as hyperparameters, but it is not the purpose of this lecture to provide details on this aspect.
+
+It seems that boosted regression trees are the most accurate, even though the most complex, with an average error of $2100.
+
+***
+##**Conclusions**
+In this lecture we explored the basic concepts behind machine learning regression. Then we looked at the code to fit some of the most popular machine learning algorithms based on regression trees. 
+
+
+***
+##**Homework**
+- Test machine learning algorithms on the Crimes and Diet datasets we used in previous lectures.

@@ -1,0 +1,665 @@
+---
+title: "Advanced Research Methods - E7004"
+author: "Dr. Fabio Veronesi"
+date: "21 March 2018"
+output:
+  word_document: default
+  html_document: default
+subtitle: Day 3 - Linear Modelling
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=F)
+```
+
+
+##**Summary**
+- Introduction
+- Assumptions of parametric tests
+- ANOVA
+- Statistical vs. Biological Effect
+- Linear Regression
+- Checking Assumptions
+- Non-parametric Tests
+- Generalized Linear Models (GLM)
+
+
+***
+##**Introduction**
+In the previous lecture we started talking about inferential statistics and t-test, which we can use to compare two samples. However, in the majority of cases we work with more complex designs where we need to compare different treatments, so we need more advanced tests, which will be describe here.
+
+We will start though by taking a step back and talking about the assumptions of inferential statistics.
+
+***
+##**Assumptions of parametric tests**
+Generally speaking, inferential statistics works by comparing mean values and confidence intervals. As we discussed in the previous lecture, this implies computing the standard error of the mean. However, if you remember from the first day, the standard error of the mean can only be used when we have a normal distribution. In cases where the distribution is not normal we need to use quantiles. This implies that with distributions that are different from the normal, we cannot use standard statistical tests. 
+
+This is probably the most important assumption of the test we will discuss today. However, it is not the only one For example, if we want to apply ANOVA we need to check the following assumptions:
+
+- Independence
+- Normality
+- Equality of variances between groups
+- Balanced design
+
+Some of these assumptions are quite strict, while other can be relaxed, particularly if we have at least 10 samples per group.
+
+ANOVA, or analysis of variance, is a test that compares mean values from several groups based on the following equation:
+
+###$y_j = \eta + \tau_i + \epsilon$
+
+where $y_j$ is the effect of treatment $\tau_i$ on group $j$, $\eta$ is the grand mean, i.e. the global mean of all groups, and $\epsiol$ is the error term.
+
+Most of the assumptions are related to the error term $\episol$, which is assumed to be independent, normally distributed and have constant variance. The assumption of independence is very strict, if our data are correlated this assumption will be violated and the results of ANOVA could be biased. However, if the experiment is properly designed and fully randomized this will not be an issue. Normality and constant variance are assumptions that can be relaxed if sample size is sufficiently large. We will look at how to check both of them below.
+
+***
+##**ANOVA**
+This lecture will show the R code necessary to perform an ANOVA, but it will not dig too much into the theory behind the analysis. If you want to know more about it please look at the following document I wrote: [ANOVA](https://liveharperac-my.sharepoint.com/:b:/g/personal/00754140_harper-adams_ac_uk/EUQhOucE2NNJt46FJGzVHdIBxAAs0Cj-96vAFjLU0tN2NQ?e=qIsTVz)
+
+In this lecture we will load agricultural datasets from a package named `agridat`. Please install and load it:
+```{r, eval=F}
+install.packages("agridat")
+```
+
+```{r}
+library(agridat)
+```
+
+
+Other packages we need, and which needs to be installed, are:
+```{r}
+library(car)
+library(pwr)
+library(moments)
+library(Rfit) 
+library(AER)
+library(MASS)
+```
+
+
+From `agridat` we can now load the dataset `lasrosas.corn`, which  has more that 3400 observations of corn yield (measured in quintals/ha) in a field in Argentina, plus several explanatory variables both factorial (or categorical) and continuous.
+```{r}
+data(lasrosas.corn)
+
+str(lasrosas.corn)
+```
+
+
+We will start by performing a one-way ANOVA, where the treatment structure has only one level. For this experiment we will try to explain yield (which is our dependent variable, $y$), with nitrogen levels (independent variable, or predictor). In R analysis of variance can be performed with the function `aov`:
+
+
+```{r}
+One.Way = aov(yield ~ nf, data=lasrosas.corn) 
+```
+
+To obtain the ANOVA table we can use the function `summary`:
+```{r}
+summary(One.Way)
+```
+
+
+As for the t-test, in the summary above we are mostly interested in the _p-value_, which tells us the level of significance of our treatment. In this case the _p-value_ is very low, which means some of the groups (i.e. plots treated with particular levels of nitrogen) are statistically different from other.
+
+We can be a bit more precise by performing multiple comparison, where we test each combination of treatments (i.e. each individual contrast):  
+```{r}
+TukeyHSD(One.Way, conf.level=0.95) 
+```
+
+
+These results provide a _p-value_ for each pair of treatments. This allows us to determine which of these are different from each other. For example, `N0` is statistically different from all other nitrogen levels. However, `N1` is different from `N4` and `N5`, but not from `N2` and `N3`.
+
+We can extract the mean values of each treatment using the following line:
+```{r}
+model.tables(One.Way, type="means")
+```
+
+
+This function provides us with the grand mean, mean values of each treatment level and the number of replicates for each level. 
+As you can see not all the levels were replicated the same number of times; this is therefore an unbalanced design. 
+In this case this is not much of a problem because the number of samples is very high. However, for smaller experiments this can create issues and in some cases we cannot avoid unbalanced designs. 
+
+If this happens we cannot rely on the standard ANOVA table, but we have to compute what is called a type III test, as follows:
+```{r}
+Anova(One.Way, type="III")
+```
+
+To know more about this please look at: [Types of Sums of Squares](http://www.utstat.utoronto.ca/reid/sta442f/2009/typeSS.pdf)
+
+We can investigate the effects of each treatment using the following line:
+```{r}
+model.tables(One.Way, type="effects")
+```
+
+These values are all referred to the grand mean, meaning for example that `N0` has a value that is -4.855 below the grand mean. We can verify that looking at the table of means above.
+
+
+***
+###**Statistical vs. Biological Effect**
+Sometimes there is some confusion on the meaning of _p-values_. Generally speaking, _p-values_ are reported based on the probability they represent. As we mentioned in the previous lecture, significance is generally accepted at 5%, meaning that our results are considered significant only if the _p-value_ is equal or below 0.05. However, _p-values_ can also be smaller and in these cases we talk about highly significant differences if _p-value_ is equal or below 0.01; very highly significant differences if the _p-value_ is equal or below 0.001.
+
+These values express the probabilities of incurring in a Type I error (false positive), and indirectly also the probabilities of incurring in a type II error (it is very difficult to have low power in cases where the _p-value_ is very highly significant). However, a very low _p-value_ does not necessarily mean that the groups we are testing have large differences. In other words, the magnitude of differences between treatments is not measured by the _p-value_, which only tells that the probabilities of obtaining the same results by chance are very low.
+
+We can better understand this point once again with a little simulation similar to what we did in the previous lecture:
+
+```{r}
+S1 = rnorm(n=3, mean=5, sd=2)
+S2 = rnorm(n=3, mean=6, sd=2)
+S3 = rnorm(n=3, mean=7, sd=2)
+
+```
+
+Here we are creating three samples that have differences equal to half a standard deviation. In terms of effect size their differences are equal to ES = 0.5. Therefore we are talking about relatively large differences between groups.
+However, the question is: can we detect these differences with a statistical tests?
+
+Before we can do that we need to create a `data.frame` to hold these data in a format that we can then use for ANOVA. We can do that with the following code:
+
+```{r}
+SIM.LargeEffect = expand.grid(Rep=1:3, Treatment=c("T1", "T2", "T3"))
+SIM.LargeEffect
+```
+
+The function `expand.grid` is extremely useful for simulations (and for many other things). It basically allows us to supply several variables (in the form of `vector` of equal or unequal length), and it then creates a `data.frame` with all the combinations of elements in each vector. In this example, we simulated an experiment with three treatments (`T1`,`T2`, and `T3`) and three replicates. The function creates a `data.frame` of $3 \times 3 = 9$ rows with each combination. At this point we can simulate dependent variables (let's call it `yield`) using the three samples we created above:
+
+```{r}
+SIM.LargeEffect$Yield = 1:9
+```
+
+First of all, we create an additional column in the `data.frame`, called `yield`, which we fill with numbers from 1 to 9. These will act as place holders until we replace them with values from our three samples. To do so we can do some subsetting of the object `SIM.LargeEffect`:
+
+```{r}
+SIM.LargeEffect[SIM.LargeEffect$Treatment=="T1",]$Yield = S1
+SIM.LargeEffect[SIM.LargeEffect$Treatment=="T2",]$Yield = S2
+SIM.LargeEffect[SIM.LargeEffect$Treatment=="T3",]$Yield = S3
+```
+
+Here we are first subsetting the object by treatment, and at the same time replacing the elements in the column `yield` (for only the treatment we have subset) with one of the samples we created above.
+
+Let's see how the object `SIM.LargeEffect` looks now:
+
+```{r}
+SIM.LargeEffect
+```
+
+
+Now that we have a dataset where we know the effect size to be exactly 0.5, we can test it using ANOVA:
+
+```{r}
+ANOVA.LargeEffect = aov(Yield ~ Treatment, data=SIM.LargeEffect)
+summary(ANOVA.LargeEffect)
+```
+
+Clearly, since this is a simulation it may be that we obtain a significant _p-value_ some times. However, chances are the large majority of times the _p-value_ will not be significant, despite the relatively large differences between samples. This is because the samples size is small ($n=3$).
+
+On the contrary, if the sample size is large enough we can obtain very small _p-values_ even in cases where differences between groups are extremely small. Let's look at the following simulation:
+
+```{r}
+S4 = rnorm(n=7000, mean=5, sd=2)
+S5 = rnorm(n=7000, mean=5.1, sd=2)
+S6 = rnorm(n=7000, mean=5.2, sd=2)
+
+SIM.SmallEffect = expand.grid(Rep=1:21000, Treatment=c("T1", "T2", "T3"))
+SIM.SmallEffect$Yield = 1:21000
+
+SIM.SmallEffect[SIM.SmallEffect$Treatment=="T1",]$Yield = S4
+SIM.SmallEffect[SIM.SmallEffect$Treatment=="T2",]$Yield = S5
+SIM.SmallEffect[SIM.SmallEffect$Treatment=="T3",]$Yield = S6
+
+ANOVA.SmallEffect = aov(Yield ~ Treatment, data=SIM.SmallEffect)
+summary(ANOVA.SmallEffect)
+```
+
+Here we have three samples of size $n = 7000$ each, and with this amount of data finding very high significance for extremely small differences between groups is possible. This is clearly an unrealistic example; however, it clearly shows that _p-value_ and differences between groups are not correlated. The conclusion is that it is always advisable to not just report the _p-value_ but also the effect size (or at least a plot that clearly shows differences between groups).
+
+
+***
+###**Sample size for One-Way ANOVA**
+As we mentioned in the previous lecture, power analysis can help us determine the minimum sample size required to achieve good power, given a particular effect size. Therefore, we can try to see what would be the optimal sample size for our simulations, starting from the first ($ES = 0.5$). The function `pwr.anova.test` has a slightly different syntax compared to `pwr.t.test`. First of all we have to include the option `k` for the number of groups (in this case we have three treatments, so three groups). Then we have an option `f` for the effect size. This is another way of computing the effect size, which is simply $f = \frac{ES}{2}$; the other options are the same:
+
+```{r}
+pwr.anova.test(k=3, f=0.25, sig.level=0.05, power=0.8) 
+```
+
+As you can see, the required sample size ($n$) is much larger than our three replicates. 
+
+Now we can check the sample size for the second simulation. First of all we need to compute the effect size, which we can do with the procedure we followed in the previous lecture:
+
+```{r}
+numerator = (mean(S5)-mean(S4))
+denominator = sqrt((((length(S5)-1)*sd(S5)^2)+((length(S4)-1)*sd(S4)^2))/(length(S5)+length(S4)-2))
+
+ES = numerator/denominator
+ES
+```
+
+Now that we have the effect size we can input it in `pwr.anova.test` to compute the number of samples (remember that $f = \frac{ES}{2}$):
+
+```{r}
+pwr.anova.test(k=3, f=ES/2, sig.level=0.05, power=0.8) 
+```
+
+
+***
+###**_A Posteriori_ Power Analysis**
+So far we talked about power analysis only in cases where we need to compute the optimal sample size for our experiments. This is the most common way to use power analysis, and it referred to as _a priori_ power analysis since it is performed before the experiment. However, this is not the only way to use power analysis. We can also perform it _a posteriori_, meaning after we have run the experiment. This is very valuable to better understand and interpret our experiment. For example, it may be that we run an analysis and our result suggest significant differences. Can we really be sure that our results are reliable?
+
+In the book [Statistics Done Wrong, by Alex Reinhart](https://www.statisticsdonewrong.com/) there is a very good explanation of the effect of considering a significance of 5% and a power of 80%. In his example Reinhard argues that even though we are assuming we are risking false positives only in 5% of cases, these may actually be much higher (around 30%). So computing the power of our experiment can allow us to achieve more robust conclusions.
+
+Doing an _a posteriori_ power analysis in R is very easy. We can simply use the same function we used above:
+
+```{r}
+pwr.anova.test(k=3, n=3, f=0.25, sig.level=0.05)
+```
+
+As you can see, in the line above we are using the function `pwr.anova.test` in a different way. We included the option `n`, with the number of samples per group we used in our first simulation, and excluded the option `power`, since this is what we need to compute.
+
+As expected, results suggest our power is very low.
+
+
+***
+##**k-way ANOVA**
+If we need to perform ANOVA analysis for more complex factorial designs we can just add elements to the formula:
+
+```{r}
+Two.Way = aov(yield ~ nf + topo, data=lasrosas.corn) 
+summary(Two.Way)
+
+model.tables(Two.Way, type="means")
+```
+
+For multiple comparisons we need to specify which contrasts to look for:
+```{r}
+TukeyHSD(Two.Way, conf.level=0.95, which=c("topo")) 
+```
+
+If we do not specify the option `which`, the function will return all contrasts.
+
+
+###**Interaction**
+To add an interaction term we simply need to change again the formula in the model:
+
+```{r}
+Two.Way.Interaction = aov(yield ~ nf * topo, data=lasrosas.corn) 
+summary(Two.Way.Interaction)
+
+model.tables(Two.Way.Interaction, type="means")
+```
+
+Please notice the asterisk (`*`) separating `nf` and `topo`, which indicates that we are also interested in testing the interaction. As you can see the interaction is not significant.
+
+
+####**_Notes on Formula_**
+A lot of statistical tests in R are based on formula, like the one we used above. So it is important to take a moment and make sure we know how to code the formula exactly for the model we want to test.
+
+As you probably know by now, the syntax for the classic linear model is the following:
+
+###$y = \beta_0 + \beta_1 x + \epsilon$ 
+
+The R syntax is simply: `y ~ x`. 
+
+To add elements we would simple include a `+`: `y ~ x1 + x2`. This will test the main effects for `x1` and `x2`. In some cases we are interested in testing the interaction, and the model can thus be written as: `y ~ x1 * x2`. This will test both the main effects and their interaction. If we are only interested in testing the interaction the formula will become: `y ~ x1 : x2`
+
+With more complex models we may be interested in including a lot more terms in the equations, but only testing two-way interactions. This can be coded like so:
+```
+y ~ (x1 + x2 + x3)^2
+```
+
+This formula will guarantee that we do **not** test for the interaction `x1*x2*x3`, but only for interactions including two predictors.
+
+More details about formula in R:
+[Statistical Formula Notation in R, by chicagobooth.edu](http://faculty.chicagobooth.edu/richard.hahn/teaching/formulanotation.pdf)
+[Statistical Formulas, by nature.nps.gov](https://science.nature.nps.gov/im/datamgmt/statistics/r/formulas/)
+
+
+###**ANOVA for Block Designs**
+For block designs the syntax to perform the ANOVA needs to account for the blocking factor. To experiment with this design we are going to load another dataset from the package `agridat`:
+
+```{r}
+data(besag.bayesian)
+str(besag.bayesian)
+```
+This is randomized complete block design (the blocking factor is under `col`), and the syntax to analyse it is below:
+
+```{r}
+besag.bayesian$col = as.factor(besag.bayesian$col)
+
+CBD.ANOVA = aov(yield ~ col + gen, data=besag.bayesian)
+summary(CBD.ANOVA)
+```
+
+The first line of code simply converts the column `col` from numerical to factorial. This is useful to know because in many datasets blocks are included as numbers, and therefore R reads them as numerical values.
+
+Then we can perform the ANOVA simply by including the blocking factor first.
+
+###**ANOVA for Split-Plot Designs**
+Split-plot is another design that is sometimes used and that needs to be treated carefully during analysis. For this example we are loading a dataset (modified) presented in a recent paper in the European Journal of Soil Science by Webster and Lark, entitled [Analysis of variance in soil research: let the analysis fit the design](http://onlinelibrary.wiley.com/doi/10.1111/ejss.12511/abstract).
+
+The design is represented in the image below (taken from the paper):
+
+![Source: Analysis of variance in soil research: let the analysis fit the design](https://github.com/fveronesi/AdvancedResearchMethods/raw/Images/Split-Plot_Modified.jpg)
+
+Please download the file `exp3.csv` from the learning hub, place it in a folder of your choice and load it using the `read.csv` function:
+
+```{r, eval=F}
+soil.df = read.csv("exp3.csv",header=T)
+```
+
+***
+An alternative way of importing the data is from my [GitHub](https://github.com/fveronesi/AdvancedResearchMethods) with the package `RCurl`:
+
+```{r, eval=F}
+install.packages("RCurl")
+```
+
+```{r}
+library(RCurl)
+
+Data.URL = getURL("https://raw.githubusercontent.com/fveronesi/AdvancedResearchMethods/master/exp3.csv")
+
+soil.df = read.csv(text=Data.URL)
+```
+
+***
+
+After the data are loaded, we can convert some columns into factors and perform the analysis with the following line:
+
+```{r}
+soil.df$Manures<-factor(soil.df$Manures)
+soil.df$Irrigation<-factor(soil.df$Irrigation)
+soil.df$Blocks<-factor(soil.df$Blocks)
+soil.df$Whole_Plot<-factor(soil.df$Whole_Plot)
+soil.df$Split_Plot<-factor(soil.df$Split_Plot)
+
+exp3 <-aov(Respiration_rate ~ Blocks + Irrigation*Manures + Error(Whole_Plot/Split_Plot), data = soil.df)
+
+summary(exp3)
+```
+
+
+
+
+***
+##**Linear Regression**
+Up to now we dealt with factorial designs, for which ANOVA is the most appropriate test. However, in cases when we are dealing with continuous variables (or a mix between continuous and categorical) we need to change to linear regression.
+
+For example, in the dataset `lasrosas.corn` there are two variables related to nitrogen amendments. The first the is the variable `nf`, which is categorical; the second is `nitro`, which is continuous. However, they are representing the same amendments, the difference is that `nitro` recorded the actual amount of nitrogen applied to each plot, while `nf` assigned a category to each level.
+
+In the one-way ANOVA model we used the variable `nf`, and the research question underlying the test was to detect any differences between these levels. However, in some occasions we could be interested in knowing what is the impact on yield of unit increases in nitrogen. To answer this question we need to fit a different model:
+
+```{r}
+LinReg = lm(yield ~ nitro, data = lasrosas.corn)
+summary(LinReg)
+```
+
+As you can see we are now using the function `lm`, which stands for linear model. The predictor now is `nitro`, which is a continuous variable. The summary provides the slope of line (0.061717), which tells us the average increase in yield for each unit increase in nitrogen. Basically, for each additional unit of nitrogen we add to the soil we would increase yield on average of 0.06 quintals/ha, or 6 kg/ha.
+
+***
+##**Checking Assumptions**
+As mentioned, there are some assumptions required to fit any linear model, being an ANOVA or a linear regression. In particular, normality and equality of variance are the most important.
+
+We can check that our model complies with these assumptions using the function `plot`:
+
+```{r}
+ par(mfrow=c(1,2))  
+ plot(LinReg, which=c(1,2))
+```
+
+The first plot on the left represents the residuals against the fitted values (or the estimates from the model). One of our assumptions is that the error term had mean of zero and constant variance. This means that we should see the residuals equally spread around zero, and a more or less horizontal line (red line) with intercept on the zero. In this case the line is very close to being straight across zero, and the spread is more or less constant throughout the range of fitted values. Therefore, we can conclude our model does **not** violate this assumption.
+
+The second plot is the QQplot of the residuals. This plots the quantiles of the distribution of residuals against quantiles of a standard normal distribution (with mean = 0 and sd = 1). The more our samples fit a normal distribution, the more these points should lie on a straight line with an inclination of 45 degrees. In this case it seems the quantile line is not exactly straight, so we need an additional test to determine whether we can accept normality. We can compute the skewness of the residuals, with the function from the package `moments`:
+
+```{r}
+skewness(residuals(LinReg))
+```
+
+Since the skewness is below $\pm0.5$ [(Webster and Oliver, 2007)](https://www.wiley.com/en-gb/Geostatistics+for+Environmental+Scientists%2C+2nd+Edition-p-9780470028582), we can conclude that our results do **not** violate the assumption of normality either.
+
+***
+##**Non-parametric Tests**
+For certain datasets the assumption of normality cannot be met. In such cases we may consider different options: GLM is one of them and it should be a good solution for datasets like counts and presence/absence data (we will look at GLM below). Another option could be to transform the data and "normalize"" them to meet the assumption of normality. However, with transformations we need to be extremely careful because the estimates of the slopes will also be transformed, and so we always need to know how to back-transform our data. The final option would be to use non-parametric tests, which do not assume a normal distribution.
+
+For the one-way ANOVA the non-parametric alternative is the Kruskal-Wallis test:
+
+```{r}
+kruskal.test(yield ~ nf, data=lasrosas.corn) 
+```
+
+For more complex designs we can use the function `raov` from the package `Rfit`:
+
+```{r}
+raov(yield ~ nf * topo, data=lasrosas.corn)
+```
+
+
+***
+##**GLM - Count Data**
+As mentioned above, generalized linear models or GLM, can be used in cases of violation of the assumption of normality. These models can work with error distributions that do not fit a normal distribution, so theoretically they could be employed every time we are working with non-normal distributions. However, in order to apply GLM we need to know what distribution to fit to our data. In other words, knowing that the distribution is not normal is not enough, we need to know what other distribution fits our data. This is not the case for non-parametric tests, which only assume non-normality. However, non-parametric tests only allow relatively simple designs, so we need to be careful.
+
+For some datasets though, knowing the distribution is fairly simple and therefore GLM are the preferred choice. One of these datasets is count data, e.g. number of insects, number of events per hours. These data generally fit a Poisson distribution, which looks similar to the histogram below:
+
+![Histogram of Poisson Distribution](https://github.com/fveronesi/AdvancedResearchMethods/raw/Images/Poisson.png)
+
+The characteristic of the poisson distribution is that it only includes non-negative integers (i.e. whole numbers), and usually the large majority of data are close to zero. 
+
+GLM still solve linear equations, but because of the data distribution they employ a link function to "linearise" the model. In fact, GLM for count data solve the equation below:
+
+###$\ln{(y)} = \beta_0 + \beta_1 x$ 
+
+For testing GLM for counts in R we are going to import another dataset from the package `agridat`:
+
+```{r}
+data(beall.webworms)
+str(beall.webworms)
+```
+
+This dataset represents counts of worms in a beet field, with insecticide treatments.
+
+The syntax to fit GLM in R is very simple and follows the same formula approach we used for previous models:
+
+```{r}
+PoisReg = glm(y ~ trt, data=beall.webworms, family=poisson(link=log)) 
+```
+
+As you can see the main difference between the syntax for the function `glm` as compared to `lm` is that here we need to add the options `family`, which is the family of distributions for our data, and `link`, which is the link function for this particular model.
+
+As always we can call the functions `Anova`... 
+
+```{r}
+Anova(PoisReg)
+```
+
+and  `summary` to check the details of the model:
+
+```{r}
+summary(PoisReg)
+```
+
+
+As for the other models we tested above, `Anova` provides a _p-value_ for the whole treatment, while `summary` provides _p-values_ for individual contrasts, computed with a [Wald test](http://www.blackwellpublishing.com/specialarticles/jcn_10_774.pdf). In this dataset, treatment has 4 levels (`T1`, `T2`, `T3` and `T4`). as you can see in the summary table, level `T1` is not shown. This is called the reference level and all the _p-values_ are computed based on the comparison between them and the reference level. For example, the _p-value_ for `T2` is referred to the contrast between `T1` and `T2`. 
+
+In case we need to compute _p-values_ for other contrasts we can simply change the order within the variable `trt`:
+
+```{r}
+beall.webworms$trt = relevel(beall.webworms$trt, "T4")
+```
+
+Now we have changed the reference level to `T4`, so that if we run the model again we can check _p-values_ for direct comparisons with `T4`:
+
+```{r}
+PoisReg = glm(y ~ trt, data=beall.webworms, family=poisson(link=log))
+
+summary(PoisReg)
+```
+
+As you can see, the _p-values_ are different. For example, the _p-value_ for `T2` is now not significant. This means that the difference between `T2` and `T4` is not significant.
+
+###**Checking Assumption**
+We can again use the function plot to produce diagnostic plots:
+
+```{r}
+par(mfrow=c(1,2))  
+plot(PoisReg, which=c(1:2)) 
+```
+
+The interpretation is the same as for `lm`. The left plot should indicate a straight line crossing zero, and a constant spread of points. The right QQplot should present quantiles on a straight line. In this case it seems our model could be better particularly in terms of normality of the residuals.
+
+
+###**Interpretation**
+To interpret the coefficients of the model we need to remember that this GLM uses a log link function. Therefore for example the -1.02 is log transformed, so the coefficient for `T2` would be `exp(-1.02) = 0.36`.
+In terms of interpretation, we can say that the number of worms for `T2` is 0.36 times the number of worms for `T1` (this is because the coefficient is always referred to the reference level). So there is a decrease, and that is why the coefficient is negative. 
+
+More info here: [stats.stackexchange.com](https://stats.stackexchange.com/questions/234057/interpretation-of-slope-estimate-of-poisson-regression)
+
+###**Overdispersion**
+In some cases count data can be overdispersed, meaning that the variance of the distribution is higher that what we would expect in case of a poisson distribution. In such cases we need to change the error distribution in the model.
+
+To assess the overdispersion we can compute both variance and mean:
+
+```{r}
+mean(beall.webworms$y); var(beall.webworms$y)
+```
+As you can see they are slightly different. If these data followed a perfect poisson distribution, these two values would be almost identical. The fact that the variance is larger than the mean implies a certain degree of overdispersion, which we can account using the "quasi-poisson" distribution:
+
+```{r}
+QuasPois.Reg = glm(y ~ trt, data=beall.webworms, family=quasipoisson(link=log))
+
+summary(QuasPois.Reg)
+```
+
+There are cases though were the variance is much larger the the mean, and a quasi-poisson would not be appropriate. In such cases we need to resort to using a "negative binomial" distribution of the error term (using a function from the package `MASS`):
+
+```{r}
+NegBin.Reg = glm.nb(y ~ trt, data=beall.webworms) 
+
+summary(NegBin.Reg)
+```
+
+
+***
+##**GLM - Presence/Absence**
+Another popular form of regression that can be tackled with GLM is the logistic regression, where the variable of interest is binary (0 or 1, presence or absence, and any other binary outcome). In this case the regression model takes the following equation:
+
+###$\ln\left(\frac{p(y)}{1-p(y)}\right) = \beta_0 + \beta_1 x$
+
+The equation is identical to the standard linear model, but what we are computing here is the log of the probability that one of the two outcomes will occur, also referred as logit function.
+
+For this example we are loading the dataset `johnson.blight`, again available in `agridat`. Here the binary variable of interest is the presence or absence of blight (either 0 or 1) in potatoes:
+
+```{r}
+data(johnson.blight)
+
+str(johnson.blight)
+```
+
+The syntax to fit a logistic regression model is very similar to what we used above:
+
+```{r}
+LogReg = glm(blight ~ rain.am, data=johnson.blight, family=binomial(link=logit))  
+```
+
+Once again we can call `Anova`...
+
+```{r}
+Anova(LogReg)
+```
+
+...and `summary` to get the details:
+
+```{r}
+summary(LogReg)
+```
+
+The _p-values_ can be interpreted as we described above.
+
+###**Interpretation**
+The interpretation of estimates for a logistic regression model are a bit more complex than what we saw for count data. In fact, here we are dealing with a logit transformation and to compute the probabilities we need to solve the following:
+
+###$p(y=1) = \frac{\exp(\beta_0 + \beta_1 x)}{1 + \exp(\beta_0 + \beta_1 x)}$
+
+here $\beta_0$ is the value of the intercept (-4.9854), and $\beta_1$ is the value of the slope for `rain.am` (0.4467).
+
+Let's say for example that we need to compute probabilities of blight if rainfall is 10 mm, we need to solve the equation above using the estimates from the model.
+
+```{r}
+exp(-4.9854 + 0.4467 * 10)/(1 + exp(-4.9854 + 0.4467 * 10))
+```
+
+Therefore the probability of blight for rain of 10 mm is 37%. If we need to compute the rate of change, i.e. changes in probabilities for each unit change in rain, we need to use a linear approximation, as suggested by Agresti [(2007)](https://www.wiley.com/en-us/An+Introduction+to+Categorical+Data+Analysis%2C+2nd+Edition-p-9780471226185):
+
+![Linear Approximation](https://github.com/fveronesi/AdvancedResearchMethods/raw/Images/LogisticLinearApproximation.png)
+
+where $\beta$ is the coefficient for rain (0.4467) and $\pi$ is the probability we just calculated.
+
+The code to solve that is:
+
+```{r}
+0.4467 * 0.37 * (1 - 0.37)
+```
+
+So for each 1 mm of rain the increase in probability is around 10% (allowing for differences due to the linear approximation).
+
+Now that we know how to compute probabilities by hand, you will be happy to know that we can do all this using the function `predict` and avoid manual computations. For example, to compute the probability for `rain.am` equal 10 we can simply run:
+
+```{r}
+predict(LogReg, newdata=data.frame(rain.am=10), type="response")
+```
+
+here `newdata` is used to tell the model which new dataset to use for prediction, and `type="response"` is the option to use to get probabilities. 
+
+If we want to know the rate of change we can simply predict two values separated by one:
+
+```{r}
+predict(LogReg, newdata=data.frame(rain.am=c(10,11)), type="response")
+```
+As you can see the rate of change is around 10% (for this part of the curve).
+
+
+***
+##**GLM - Proportion**
+Proportions can also be analysed with GLM. For this example we can use the dataset `crowder.seeds`, where the variable `germ` is the number of seeds that germinated, while `n` is the total number of seeds:
+
+```{r}
+data(crowder.seeds)
+
+str(crowder.seeds)
+```
+
+The model is the following:
+
+```{r}
+PropMod = glm(cbind(germ, n) ~ gen + extract, data=crowder.seeds, family="binomial") 
+```
+
+here we are using the function `cbind` to compute proportions for the number of seeds that germinated in relation to the total number of seeds. The interpretation of the model is the same as above, with `Anova`:
+
+```{r}
+Anova(PropMod)
+```
+
+and `summary`:
+
+```{r}
+summary(PropMod)
+```
+
+again we can use the function `predict` to compute proportions for particular variables of the predictors.
+
+***
+##**Conclusions**
+In this second lecture on inferential statistics we looked at all the most important statistical test we can perform on our data. We started describing ANOVA, which is a particular form of linear modelling specific for factorial designs, and learning how to interpret its results and check if we met all the assumptions. Then we covered linear regression, which is what we normally use when we have either only continuous predictors or a mix between categorical and continuous. Finally, we explored GLM, which are particularly useful in specific dataset where the assumption of normality is violated.
+
+
+***
+##**References**
+Please look at my Blog for additional functions that were not covered in the lecture:
+
+- [Linear Modelling - Fabio Veronesi](http://r-video-tutorial.blogspot.co.uk/2017/06/linear-models-anova-glms-and-mixed.html)
+
+- [GLM - Fabio Veronesi](http://r-video-tutorial.blogspot.co.uk/2017/07/generalized-linear-models-and-mixed.html)
+
+- Other books can be found in my [OneDrive folder](https://goo.gl/Yfr1Y3) under "Inferential Statistics"
+
+
+***
+##**Homework**
+1. From this [page](https://www.sheffield.ac.uk/mash/statistics2/data), load the Crime dataset and create a regression model that can explain part of the variance in the dependent variable (CrimeRate).
+
+2. From the same page load the Birthweigth dataset and perform a logistic regression as suggested in the data description.
