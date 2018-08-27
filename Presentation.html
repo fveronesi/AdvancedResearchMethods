@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Dr. Fabio Veronesi" />
+  <meta name="dcterms.date" content="2018-08-28" />
+  <title>Online Hate Interpretation</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="Presentation_files/reveal.js-3.3.0.1/css/reveal.css"/>
+
+
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+<link rel="stylesheet" href="Presentation_files/reveal.js-3.3.0.1/css/theme/simple.css" id="theme">
+
+
+  <!-- some tweaks to reveal css -->
+  <style type="text/css">
+    .reveal h1 { font-size: 2.0em; }
+    .reveal h2 { font-size: 1.5em;  }
+    .reveal h3 { font-size: 1.25em;	}
+    .reveal h4 { font-size: 1em;	}
+
+    .reveal .slides>section,
+    .reveal .slides>section>section {
+      padding: 0px 0px;
+    }
+
+
+
+    .reveal table {
+      border-width: 1px;
+      border-spacing: 2px;
+      border-style: dotted;
+      border-color: gray;
+      border-collapse: collapse;
+      font-size: 0.7em;
+    }
+
+    .reveal table th {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      font-weight: bold;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+    .reveal table td {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+
+  </style>
+
+    <style type="text/css">code{white-space: pre;}</style>
+
+
+<!-- Printing and PDF exports -->
+<script id="paper-css" type="application/dynamic-css">
+
+/* Default Print Stylesheet Template
+   by Rob Glazebrook of CSSnewbie.com
+   Last Updated: June 4, 2008
+
+   Feel free (nay, compelled) to edit, append, and
+   manipulate this file as you see fit. */
+
+
+@media print {
+
+	/* SECTION 1: Set default width, margin, float, and
+	   background. This prevents elements from extending
+	   beyond the edge of the printed page, and prevents
+	   unnecessary background images from printing */
+	html {
+		background: #fff;
+		width: auto;
+		height: auto;
+		overflow: visible;
+	}
+	body {
+		background: #fff;
+		font-size: 20pt;
+		width: auto;
+		height: auto;
+		border: 0;
+		margin: 0 5%;
+		padding: 0;
+		overflow: visible;
+		float: none !important;
+	}
+
+	/* SECTION 2: Remove any elements not needed in print.
+	   This would include navigation, ads, sidebars, etc. */
+	.nestedarrow,
+	.controls,
+	.fork-reveal,
+	.share-reveal,
+	.state-background,
+	.reveal .progress,
+	.reveal .backgrounds {
+		display: none !important;
+	}
+
+	/* SECTION 3: Set body font face, size, and color.
+	   Consider using a serif font for readability. */
+	body, p, td, li, div {
+		font-size: 20pt!important;
+		font-family: Georgia, "Times New Roman", Times, serif !important;
+		color: #000;
+	}
+
+	/* SECTION 4: Set heading font face, sizes, and color.
+	   Differentiate your headings from your body text.
+	   Perhaps use a large sans-serif for distinction. */
+	h1,h2,h3,h4,h5,h6 {
+		color: #000!important;
+		height: auto;
+		line-height: normal;
+		font-family: Georgia, "Times New Roman", Times, serif !important;
+		text-shadow: 0 0 0 #000 !important;
+		text-align: left;
+		letter-spacing: normal;
+	}
+	/* Need to reduce the size of the fonts for printing */
+	h1 { font-size: 28pt !important;  }
+	h2 { font-size: 24pt !important; }
+	h3 { font-size: 22pt !important; }
+	h4 { font-size: 22pt !important; font-variant: small-caps; }
+	h5 { font-size: 21pt !important; }
+	h6 { font-size: 20pt !important; font-style: italic; }
+
+	/* SECTION 5: Make hyperlinks more usable.
+	   Ensure links are underlined, and consider appending
+	   the URL to the end of the link for usability. */
+	a:link,
+	a:visited {
+		color: #000 !important;
+		font-weight: bold;
+		text-decoration: underline;
+	}
+	/*
+	.reveal a:link:after,
+	.reveal a:visited:after {
+		content: " (" attr(href) ") ";
+		color: #222 !important;
+		font-size: 90%;
+	}
+	*/
+
+
+	/* SECTION 6: more reveal.js specific additions by @skypanther */
+	ul, ol, div, p {
+		visibility: visible;
+		position: static;
+		width: auto;
+		height: auto;
+		display: block;
+		overflow: visible;
+		margin: 0;
+		text-align: left !important;
+	}
+	.reveal pre,
+	.reveal table {
+		margin-left: 0;
+		margin-right: 0;
+	}
+	.reveal pre code {
+		padding: 20px;
+		border: 1px solid #ddd;
+	}
+	.reveal blockquote {
+		margin: 20px 0;
+	}
+	.reveal .slides {
+		position: static !important;
+		width: auto !important;
+		height: auto !important;
+
+		left: 0 !important;
+		top: 0 !important;
+		margin-left: 0 !important;
+		margin-top: 0 !important;
+		padding: 0 !important;
+		zoom: 1 !important;
+
+		overflow: visible !important;
+		display: block !important;
+
+		text-align: left !important;
+		-webkit-perspective: none;
+		   -moz-perspective: none;
+		    -ms-perspective: none;
+		        perspective: none;
+
+		-webkit-perspective-origin: 50% 50%;
+		   -moz-perspective-origin: 50% 50%;
+		    -ms-perspective-origin: 50% 50%;
+		        perspective-origin: 50% 50%;
+	}
+	.reveal .slides section {
+		visibility: visible !important;
+		position: static !important;
+		width: auto !important;
+		height: auto !important;
+		display: block !important;
+		overflow: visible !important;
+
+		left: 0 !important;
+		top: 0 !important;
+		margin-left: 0 !important;
+		margin-top: 0 !important;
+		padding: 60px 20px !important;
+		z-index: auto !important;
+
+		opacity: 1 !important;
+
+		page-break-after: always !important;
+
+		-webkit-transform-style: flat !important;
+		   -moz-transform-style: flat !important;
+		    -ms-transform-style: flat !important;
+		        transform-style: flat !important;
+
+		-webkit-transform: none !important;
+		   -moz-transform: none !important;
+		    -ms-transform: none !important;
+		        transform: none !important;
+
+		-webkit-transition: none !important;
+		   -moz-transition: none !important;
+		    -ms-transition: none !important;
+		        transition: none !important;
+	}
+	.reveal .slides section.stack {
+		padding: 0 !important;
+	}
+	.reveal section:last-of-type {
+		page-break-after: avoid !important;
+	}
+	.reveal section .fragment {
+		opacity: 1 !important;
+		visibility: visible !important;
+
+		-webkit-transform: none !important;
+		   -moz-transform: none !important;
+		    -ms-transform: none !important;
+		        transform: none !important;
+	}
+	.reveal section img {
+		display: block;
+		margin: 15px 0px;
+		background: rgba(255,255,255,1);
+		border: 1px solid #666;
+		box-shadow: none;
+	}
+
+	.reveal section small {
+		font-size: 0.8em;
+	}
+
+}  
+</script>
+
+
+<script id="pdf-css" type="application/dynamic-css">
+    
+/**
+ * This stylesheet is used to print reveal.js
+ * presentations to PDF.
+ *
+ * https://github.com/hakimel/reveal.js#pdf-export
+ */
+
+* {
+	-webkit-print-color-adjust: exact;
+}
+
+body {
+	margin: 0 auto !important;
+	border: 0;
+	padding: 0;
+	float: none !important;
+	overflow: visible;
+}
+
+html {
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+/* Remove any elements not needed in print. */
+.nestedarrow,
+.reveal .controls,
+.reveal .progress,
+.reveal .playback,
+.reveal.overview,
+.fork-reveal,
+.share-reveal,
+.state-background {
+	display: none !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	text-shadow: 0 0 0 #000 !important;
+}
+
+.reveal pre code {
+	overflow: hidden !important;
+	font-family: Courier, 'Courier New', monospace !important;
+}
+
+ul, ol, div, p {
+	visibility: visible;
+	position: static;
+	width: auto;
+	height: auto;
+	display: block;
+	overflow: visible;
+	margin: auto;
+}
+.reveal {
+	width: auto !important;
+	height: auto !important;
+	overflow: hidden !important;
+}
+.reveal .slides {
+	position: static;
+	width: 100%;
+	height: auto;
+
+	left: auto;
+	top: auto;
+	margin: 0 !important;
+	padding: 0 !important;
+
+	overflow: visible;
+	display: block;
+
+	-webkit-perspective: none;
+	   -moz-perspective: none;
+	    -ms-perspective: none;
+	        perspective: none;
+
+	-webkit-perspective-origin: 50% 50%; /* there isn't a none/auto value but 50-50 is the default */
+	   -moz-perspective-origin: 50% 50%;
+	    -ms-perspective-origin: 50% 50%;
+	        perspective-origin: 50% 50%;
+}
+
+.reveal .slides section {
+	page-break-after: always !important;
+
+	visibility: visible !important;
+	position: relative !important;
+	display: block !important;
+	position: relative !important;
+
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	min-height: 1px;
+
+	opacity: 1 !important;
+
+	-webkit-transform-style: flat !important;
+	   -moz-transform-style: flat !important;
+	    -ms-transform-style: flat !important;
+	        transform-style: flat !important;
+
+	-webkit-transform: none !important;
+	   -moz-transform: none !important;
+	    -ms-transform: none !important;
+	        transform: none !important;
+}
+
+.reveal section.stack {
+	margin: 0 !important;
+	padding: 0 !important;
+	page-break-after: avoid !important;
+	height: auto !important;
+	min-height: auto !important;
+}
+
+.reveal img {
+	box-shadow: none;
+}
+
+.reveal .roll {
+	overflow: visible;
+	line-height: 1em;
+}
+
+/* Slide backgrounds are placed inside of their slide when exporting to PDF */
+.reveal section .slide-background {
+	display: block !important;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	z-index: -1;
+}
+
+/* All elements should be above the slide-background */
+.reveal section>* {
+	position: relative;
+	z-index: 1;
+}
+
+/* Display slide speaker notes when 'showNotes' is enabled */
+.reveal .speaker-notes-pdf {
+	display: block;
+	width: 100%;
+	max-height: none;
+	left: auto;
+	top: auto;
+	z-index: 100;
+}
+
+/* Display slide numbers when 'slideNumber' is enabled */
+.reveal .slide-number-pdf {
+	display: block;
+	position: absolute;
+	font-size: 14px;
+}
+
+</script>
+
+
+<script>
+var style = document.createElement( 'style' );
+style.type = 'text/css';
+var style_script_id = window.location.search.match( /print-pdf/gi ) ? 'pdf-css' : 'paper-css';
+var style_script = document.getElementById(style_script_id).text;
+style.innerHTML = style_script;
+document.getElementsByTagName('head')[0].appendChild(style);
+</script>
+
+    <script src="Presentation_files/htmlwidgets-1.2/htmlwidgets.js"></script>
+    <script src="Presentation_files/jquery-1.12.4/jquery.min.js"></script>
+    <link href="Presentation_files/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
+    <script src="Presentation_files/datatables-binding-0.4/datatables.js"></script>
+    <link href="Presentation_files/dt-core-1.10.16/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="Presentation_files/dt-core-1.10.16/css/jquery.dataTables.extra.css" rel="stylesheet" />
+    <script src="Presentation_files/dt-core-1.10.16/js/jquery.dataTables.min.js"></script>
+    <link href="Presentation_files/crosstalk-1.0.0/css/crosstalk.css" rel="stylesheet" />
+    <script src="Presentation_files/crosstalk-1.0.0/js/crosstalk.min.js"></script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+    <h1 class="title">Online Hate Interpretation</h1>
+    <h2 class="author">Dr. Fabio Veronesi</h2>
+    <h3 class="date">28 August 2018</h3>
+</section>
+
+<section id="introduction" class="slide level2">
+<h2>Introduction</h2>
+<style>
+body {
+    background-image: url(Images/logo-2017.png);
+    background-size: 15%;
+    background-repeat: no-repeat;
+    background-position: 5% 96%;
+  }
+
+
+.reveal b {
+    text-align: center;
+  }
+
+.reveal p {
+    text-align: left;
+  }
+  .reveal ul {
+    display: block;
+  }
+  .reveal ol {
+    display: block;
+  } 
+
+    .reveal h1 { 
+    font-size: 2.0em; 
+    color: #17574F;
+    font-family: Rockwell, sans-serif;
+    letter-spacing: 0.02em;
+    }
+    .reveal h2 { font-size: 1.5em; 
+font-family: Futura, sans-serif;
+color: #8B0000;}
+    .reveal h3 { font-size: 1.25em; }
+    .reveal h4 { font-size: 1em;    }
+
+    .reveal .slides>section,
+    .reveal .slides>section>section {
+      padding: 0px 0px;
+    }
+
+    .reveal table {
+      border-width: 1px;
+      border-spacing: 2px;
+      border-style: dotted;
+      border-color: gray;
+      border-collapse: collapse;
+      font-size: 0.7em;
+    }
+
+    .reveal table th {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      font-weight: bold;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+    .reveal table td {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+.reveal section img { 
+  background:none; 
+  border:none; 
+  box-shadow:none; 
+  }
+</style>
+<p>Statistical analysis of hate interpretation of Tweets based on geographical location, commissioned by a client on Upwork.com.</p>
+<p>Example of data science, applied to a topic where I do not have any domain knowledge.</p>
+<p>Therefore I worked closely with the client to make sure of producing robust results.</p>
+</section>
+<section id="research-questions" class="slide level2">
+<h2>Research questions</h2>
+<p>The client had several research questions:</p>
+<ul>
+<li><p>Does country affect hate interpretation?</p></li>
+<li><p>Does continent affect hate interpretation?</p></li>
+<li><p>Which countries/continents are most/least sensitive to on-line hate?</p></li>
+</ul>
+</section>
+<section id="experimental-design" class="slide level2">
+<h2>Experimental Design</h2>
+<p>Tweets were shown randomly to people around the world.</p>
+<p>Each person would rate the hatefulness of the tweet on a Likert scale: very hateful, hateful, moderately and slightly hateful, not hateful and not hateful at all.</p>
+<p>Each rater would also answer questions to compute a trust score, and obtain data on country and city.</p>
+</section>
+<section id="possible-analysis" class="slide level2">
+<h2>Possible Analysis</h2>
+<p>Data reported on Likert scale are generally analysed by aggregation.</p>
+<p>For example counting the number of occurrences of a certain label per country.</p>
+<p>Count data can then be analysed with a GLM.</p>
+</section>
+<section id="importing-and-cleaning" class="slide level2">
+<h2>Importing and Cleaning</h2>
+<p>Data were provided in 7 CSV files. Only certain columns needed to be imported and then all files had to be joined:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ls.files &lt;-<span class="st"> </span><span class="kw">list.files</span>(<span class="st">&quot;Data&quot;</span>, <span class="st">&quot;.csv&quot;</span>, <span class="dt">full.names =</span> T)
+
+
+ls.csv &lt;-<span class="st"> </span><span class="kw">lapply</span>(ls.files, read.csv, 
+                 <span class="dt">colClasses =</span> <span class="kw">c</span>(<span class="st">&quot;integer&quot;</span>, <span class="kw">rep</span>(<span class="st">&quot;NULL&quot;</span>,<span class="dv">7</span>),<span class="st">&quot;numeric&quot;</span>,<span class="st">&quot;NULL&quot;</span>,<span class="kw">rep</span>(<span class="st">&quot;character&quot;</span>,<span class="dv">3</span>),<span class="st">&quot;NULL&quot;</span>,<span class="st">&quot;character&quot;</span>,<span class="st">&quot;NULL&quot;</span>,<span class="st">&quot;NULL&quot;</span> ),
+                 <span class="dt">col.names =</span> <span class="kw">c</span>(<span class="st">&quot;ID&quot;</span>, <span class="kw">rep</span>(<span class="st">&quot;NULL&quot;</span>,<span class="dv">7</span>),<span class="st">&quot;Trust&quot;</span>,<span class="st">&quot;NULL&quot;</span>,<span class="st">&quot;Country&quot;</span>,<span class="st">&quot;Region&quot;</span>,<span class="st">&quot;City&quot;</span>,<span class="st">&quot;NULL&quot;</span>,<span class="st">&quot;How_Hateful&quot;</span>,<span class="st">&quot;NULL&quot;</span>,<span class="st">&quot;NULL&quot;</span> ))
+
+
+<span class="co">#Now that I have a list of data.frame I can use bind_rows directly</span>
+Hate.Dpl &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(ls.csv)</code></pre></div>
+</section>
+<section class="slide level2">
+
+<p>The result is a dataset with 18000 rows, which may seem like a good sample size.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">ID</th>
+<th style="text-align: center;">Trust</th>
+<th style="text-align: center;">Country</th>
+<th style="text-align: center;">Region</th>
+<th style="text-align: center;">City</th>
+<th style="text-align: center;">How_Hateful</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1.7e+09</td>
+<td style="text-align: center;">0.86</td>
+<td style="text-align: center;">VEN</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">very_hateful</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1.7e+09</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">BRA</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">Rio De Janeiro</td>
+<td style="text-align: center;">very_hateful</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1.7e+09</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">VEN</td>
+<td style="text-align: center;">04</td>
+<td style="text-align: center;">Boca De Zuata</td>
+<td style="text-align: center;">very_hateful</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1.7e+09</td>
+<td style="text-align: center;">0.75</td>
+<td style="text-align: center;">VEN</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">moderately_hateful</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1.7e+09</td>
+<td style="text-align: center;">0.86</td>
+<td style="text-align: center;">VEN</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">very_hateful</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1.7e+09</td>
+<td style="text-align: center;">0.88</td>
+<td style="text-align: center;">VEN</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">Caracas</td>
+<td style="text-align: center;">very_hateful</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1.7e+09</td>
+<td style="text-align: center;">0.75</td>
+<td style="text-align: center;">VEN</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">very_hateful</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1.7e+09</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">VEN</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">very_hateful</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1.7e+09</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">EGY</td>
+<td style="text-align: center;">06</td>
+<td style="text-align: center;">Alexandria</td>
+<td style="text-align: center;">very_hateful</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1.7e+09</td>
+<td style="text-align: center;">0.75</td>
+<td style="text-align: center;">VEN</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">Caracas</td>
+<td style="text-align: center;">very_hateful</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="exploratory-data-analysis-eda" class="slide level2">
+<h2>Exploratory Data Analysis (EDA)</h2>
+<p>EDA revealed some issues, e.g. Venezuela (VEN) and Algeria (DZA):</p>
+<div id="htmlwidget-cae8f2c73d5818454fd0" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-cae8f2c73d5818454fd0">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52"],["VEN","EGY","SRB","USA","UKR","RUS","IND","TUR","IDN","BIH","GRC","ESP","ITA","PHL","BRA","MEX","NGA","MAR","POL","COL","ARG","HRV","MKD","SWE","BGR","ROU","ALB","PAK","MNE","CAN","KEN","HUN","CYP","GBR","CZE","ARE","MDA","DZA","CHL","LKA","NPL","BGD","TUN","ZAF","PER","FRA","VNM","MYS","NLD","SVN","ISR","DEU"],[8404,1247,933,767,734,719,613,494,328,285,250,239,234,224,200,186,180,175,150,150,140,125,115,110,105,99,85,85,84,65,50,50,50,50,40,35,35,35,30,30,25,20,20,20,20,20,20,15,10,10,10,5],[0.92,0.91,0.93,0.94,0.91,0.93,0.91,0.92,0.91,0.93,0.94,0.91,0.92,0.91,0.92,0.88,0.93,0.92,0.92,0.97,0.92,0.95,0.9,0.98,0.92,0.98,0.88,0.93,0.94,0.94,0.87,0.87,1,0.93,0.92,0.81,0.95,0.93,1,0.92,1,0.88,1,1,0.88,1,0.92,1,1,1,1,0.8],[2,3,2,2,2,3,2,3,3,2,4,4,3,3,3,3,2,1,3.5,4,2.5,2,4,2,2,2,2,4,3,2,1,2,4,4,2,2,4,5,1.5,2,2,1,1,1,3,4,4,4,2,3,4,3]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Country<\/th>\n      <th>N_Samples<\/th>\n      <th>Avg_Trust<\/th>\n      <th>MedianHate<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":7,"dom":"bootstrap","columnDefs":[{"className":"dt-right","targets":[2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[7,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+</section>
+<section id="adding-continents" class="slide level2">
+<h2>Adding Continents</h2>
+<p>Continent data were scraped from Wikipedia and added to the dataset:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">doc.html =<span class="st"> </span><span class="kw">getURL</span>(<span class="st">&#39;https://en.wikipedia.org/wiki/List_of_sovereign_states_and_dependent_territories_by_continent_(data_file)&#39;</span>)
+
+doc.table =<span class="st"> </span><span class="kw">readHTMLTable</span>(doc.html, <span class="dt">skip.rows =</span> <span class="dv">1</span>, <span class="dt">header=</span>T)
+
+Continent.Table =<span class="st"> </span>doc.table[[<span class="dv">3</span>]]</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">CC</th>
+<th style="text-align: center;">a-2</th>
+<th style="text-align: center;">a-3</th>
+<th style="text-align: center;">#</th>
+<th style="text-align: center;">Name</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">EU</td>
+<td style="text-align: center;">AL</td>
+<td style="text-align: center;">ALB</td>
+<td style="text-align: center;">008</td>
+<td style="text-align: center;">Albania, Republic of</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">AN</td>
+<td style="text-align: center;">AQ</td>
+<td style="text-align: center;">ATA</td>
+<td style="text-align: center;">010</td>
+<td style="text-align: center;">Antarctica (the territory South of 60 deg S)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">AF</td>
+<td style="text-align: center;">DZ</td>
+<td style="text-align: center;">DZA</td>
+<td style="text-align: center;">012</td>
+<td style="text-align: center;">Algeria, People’s Democratic Republic of</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">OC</td>
+<td style="text-align: center;">AS</td>
+<td style="text-align: center;">ASM</td>
+<td style="text-align: center;">016</td>
+<td style="text-align: center;">American Samoa</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">EU</td>
+<td style="text-align: center;">AD</td>
+<td style="text-align: center;">AND</td>
+<td style="text-align: center;">020</td>
+<td style="text-align: center;">Andorra, Principality of</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">AF</td>
+<td style="text-align: center;">AO</td>
+<td style="text-align: center;">AGO</td>
+<td style="text-align: center;">024</td>
+<td style="text-align: center;">Angola, Republic of</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="effect-of-countrycontinent" class="slide level2">
+<h2>Effect of Country/Continent</h2>
+<p>Many countries (from different continents) present similar scores:</p>
+<p><img src="Presentation_files/figure-revealjs/unnamed-chunk-10-1.png" width="70%" style="display: block; margin: auto;" /></p>
+</section>
+<section class="slide level2">
+
+<p>In summary:</p>
+<ul>
+<li><p>Working with counts was not appropriate, better working with proportions to account for different sample sizes.</p></li>
+<li><p>Some countries did not have enough data for our conclusions to be reliable. We decided to exclude countries with less than 50 observations.</p></li>
+<li><p>Too many labels, peharps difficult to interpret by non English speakers.</p></li>
+<li><p>Need to do better targeting in the follow up, Algeria (DZA) was excluded but has the highest median score.</p></li>
+</ul>
+</section>
+<section id="statistical-analysis" class="slide level2">
+<h2>Statistical Analysis</h2>
+<p>The statistical analysis revealed some significant differences between countries:</p>
+<table>
+<caption>Analysis of Deviance Table (Type III tests)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: center;"> </th>
+<th style="text-align: center;">LR Chisq</th>
+<th style="text-align: center;">Df</th>
+<th style="text-align: center;">Pr(&gt;Chisq)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>How_Hateful</strong></td>
+<td style="text-align: center;">45</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Country</strong></td>
+<td style="text-align: center;">139</td>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>How_Hateful:Country</strong></td>
+<td style="text-align: center;">307</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: center;">0</td>
+</tr>
+</tbody>
+</table>
+<p>and continents:</p>
+<table>
+<caption>Analysis of Deviance Table (Type III tests)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: center;"> </th>
+<th style="text-align: center;">LR Chisq</th>
+<th style="text-align: center;">Df</th>
+<th style="text-align: center;">Pr(&gt;Chisq)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>How_Hateful</strong></td>
+<td style="text-align: center;">210</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Continent</strong></td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>How_Hateful:Continent</strong></td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">0</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="slide level2">
+
+<p>However, it is difficult to draw conclusions. For example, EU connected with AF/AS, and not NA is counterintuitive. Same for countries (POL, ESP, PAK the most affected).</p>
+<p><img src="Presentation_files/figure-revealjs/unnamed-chunk-14-1.png" width="70%" style="display: block; margin: auto;" /></p>
+</section>
+<section id="interpretation-score" class="slide level2">
+<h2>Interpretation Score</h2>
+<p>To further increase our knowledge of the relation between tweets and countries, the client asked to compute the interpretation score.</p>
+<p>This is the difference between the average rate per tweet and the individual score of a rater:</p>
+<p><strong><span class="math inline">\(Interpretation Score = \mu_i - s_r\)</span></strong></p>
+<p>where <span class="math inline">\(\mu_i\)</span> is the average score for tweet <span class="math inline">\(i\)</span>, and <span class="math inline">\(s_r\)</span> is the score that rater <span class="math inline">\(r\)</span> gave to the same tweet <span class="math inline">\(i\)</span>. Positive score means the rater perceived the tweet as more hateful than the majority of raters.</p>
+</section>
+<section id="mean-scores" class="slide level2">
+<h2>Mean Scores</h2>
+<p>Clearly, location has an effect on hate interpretation.</p>
+<p><img src="Presentation_files/figure-revealjs/unnamed-chunk-15-1.png" width="75%" style="display: block; margin: auto;" /></p>
+</section>
+<section id="normalized-scores" class="slide level2">
+<h2>Normalized Scores</h2>
+<center>
+<!-- GeoChart generated in R 3.4.4 by googleVis 0.6.2 package -->
+<!-- Mon Aug 27 15:30:19 2018 -->
+<!-- jsHeader -->
+<script type="text/javascript">
+ 
+// jsData 
+function gvisDataGeoChartID23243c411e3a () {
+var data = new google.visualization.DataTable();
+var datajson =
+[
+ [
+"VE",
+1
+],
+[
+"US",
+-0.4311299036
+],
+[
+"UA",
+-0.7817743102
+],
+[
+"TR",
+0.02823137009
+],
+[
+"SE",
+-0.6662529089
+],
+[
+"ES",
+-0.2337883086
+],
+[
+"RS",
+-1
+],
+[
+"RU",
+-0.8956529924
+],
+[
+"RO",
+-0.415917365
+],
+[
+"PL",
+-0.4388684064
+],
+[
+"PH",
+-0.6748893207
+],
+[
+"PK",
+-0.4142673821
+],
+[
+"NG",
+-0.4509107013
+],
+[
+"MA",
+-0.8098704318
+],
+[
+"ME",
+-0.1655549316
+],
+[
+"MX",
+-0.3202935102
+],
+[
+"MK",
+-0.4330576295
+],
+[
+"IT",
+-0.9583098924
+],
+[
+"ID",
+-0.5569722693
+],
+[
+"IN",
+-0.4717184906
+],
+[
+"GR",
+-0.1202802007
+],
+[
+"EG",
+-0.8273009808
+],
+[
+"HR",
+-0.5586494757
+],
+[
+"CO",
+-0.3035222677
+],
+[
+"CA",
+-0.540695787
+],
+[
+"BG",
+-0.2909092922
+],
+[
+"BR",
+-0.5858469071
+],
+[
+"BA",
+-0.902800302
+],
+[
+"AR",
+-0.3867112036
+],
+[
+"AL",
+-0.6423028996
+] 
+];
+data.addColumn('string','ISO_A2');
+data.addColumn('number','InterpretationScore');
+data.addRows(datajson);
+return(data);
+}
+ 
+// jsDrawChart
+function drawChartGeoChartID23243c411e3a() {
+var data = gvisDataGeoChartID23243c411e3a();
+var options = {};
+options["width"] = 800;
+options["height"] = 600;
+options["colors"] = ['green', 'greenyellow', 'yellow', 'orange', 'orangered','red'];
+
+    var chart = new google.visualization.GeoChart(
+    document.getElementById('GeoChartID23243c411e3a')
+    );
+    chart.draw(data,options);
+    
+
+}
+  
+ 
+// jsDisplayChart
+(function() {
+var pkgs = window.__gvisPackages = window.__gvisPackages || [];
+var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
+var chartid = "geochart";
+  
+// Manually see if chartid is in pkgs (not all browsers support Array.indexOf)
+var i, newPackage = true;
+for (i = 0; newPackage && i < pkgs.length; i++) {
+if (pkgs[i] === chartid)
+newPackage = false;
+}
+if (newPackage)
+  pkgs.push(chartid);
+  
+// Add the drawChart function to the global list of callbacks
+callbacks.push(drawChartGeoChartID23243c411e3a);
+})();
+function displayChartGeoChartID23243c411e3a() {
+  var pkgs = window.__gvisPackages = window.__gvisPackages || [];
+  var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
+  window.clearTimeout(window.__gvisLoad);
+  // The timeout is set to 100 because otherwise the container div we are
+  // targeting might not be part of the document yet
+  window.__gvisLoad = setTimeout(function() {
+  var pkgCount = pkgs.length;
+  google.load("visualization", "1", { packages:pkgs, callback: function() {
+  if (pkgCount != pkgs.length) {
+  // Race condition where another setTimeout call snuck in after us; if
+  // that call added a package, we must not shift its callback
+  return;
+}
+while (callbacks.length > 0)
+callbacks.shift()();
+} });
+}, 100);
+}
+ 
+// jsFooter
+</script>
+<!-- jsChart -->
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartGeoChartID23243c411e3a"></script>
+<!-- divChart -->
+<div id="GeoChartID23243c411e3a" style="width: 800; height: 600;">
+
+</div>
+</center>
+</section>
+<section id="anova" class="slide level2">
+<h2>ANOVA</h2>
+<p>Differences between countries are minimal compared to difference within countries:</p>
+<table style="width:88%;">
+<caption>Analysis of Variance Table</caption>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 11%" />
+<col style="width: 12%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;"> </th>
+<th style="text-align: center;">Df</th>
+<th style="text-align: center;">Sum Sq</th>
+<th style="text-align: center;">Mean Sq</th>
+<th style="text-align: center;">F value</th>
+<th style="text-align: center;">Pr(&gt;F)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>Country</strong></td>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">62</td>
+<td style="text-align: center;">2.1</td>
+<td style="text-align: center;">2.6</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Residuals</strong></td>
+<td style="text-align: center;">17495</td>
+<td style="text-align: center;">14613</td>
+<td style="text-align: center;">0.84</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">NA</td>
+</tr>
+</tbody>
+</table>
+<p>The residuals or within group sum of squares is much higher than the between groups sum of squares. This implies that there is more variation in scores between people living in the same country, as compared to people from different countries.</p>
+</section>
+<section class="slide level2">
+
+<p>We can better understand this point by looking at a plot:</p>
+<p><img src="Presentation_files/figure-revealjs/unnamed-chunk-19-1.png" width="768" height="65%" style="display: block; margin: auto;" /></p>
+</section>
+<section id="conclusion" class="slide level2">
+<h2>Conclusion</h2>
+<p>In other words, even though we found some geographical effects that may explain the differences in how on-line hate is perceived, the majority of differences are caused by non-geographical factors.</p>
+<p>This makes sense, since it is plausible that sociological factors have more influence in the way we perceived and are affected by on-line hate.</p>
+</section>
+<section id="outlook" class="slide level2">
+<h2>Outlook</h2>
+<p>These insights allowed the client to first produce a conference paper, and then design a follow up experiment where they would ask raters to include information on education, standard of living ect.</p>
+<p>This coupled with a more complex statistical model (and possibly a different sampling strategy, e.g. stratified) could allow them to better understand the main drivers on perception of on-line hate.</p>
+</section>
+<section class="slide level2">
+
+<div style="text-aling:center">
+<font size="28" color="red">Thank you for your attention!!</font>
+</div>
+<br>
+<div style="text-aling:center">
+Powered by:
+</div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;Images/logos.jpg&quot;</span>)</code></pre></div>
+<p><img src="Images/logos.jpg" width="470" style="display: block; margin: auto;" /></p>
+</section>
+    </div>
+  </div>
+
+  <script src="Presentation_files/reveal.js-3.3.0.1/lib/js/head.min.js"></script>
+  <script src="Presentation_files/reveal.js-3.3.0.1/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        // Push each slide change to the browser history
+        history: true,
+        // Vertical centering of slides
+        center: false,
+        // Transition style
+        transition: 'default', // none/fade/slide/convex/concave/zoom
+        // Transition style for full page slide backgrounds
+        backgroundTransition: 'default', // none/fade/slide/convex/concave/zoom
+
+
+
+        // Optional reveal.js plugins
+        dependencies: [
+        ]
+      });
+    </script>
+  <!-- dynamically load mathjax for compatibility with self-contained -->
+  <script>
+    (function () {
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+      document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+
+<script>
+  (function() {
+    if (window.jQuery) {
+      Reveal.addEventListener( 'slidechanged', function(event) {  
+        window.jQuery(event.previousSlide).trigger('hidden');
+        window.jQuery(event.currentSlide).trigger('shown');
+      });
+    }
+  })();
+</script>
+
+
+  </body>
+</html>
